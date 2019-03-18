@@ -1,0 +1,33 @@
+package com.loysen.slack.slackbot.event
+
+import org.junit.Assert.assertThat
+import org.junit.Test
+
+import org.hamcrest.core.Is.`is`
+import org.hamcrest.core.IsNull
+import org.hamcrest.core.IsNull.nullValue
+
+class UrlVerificationServiceTest {
+
+    private val service: UrlVerificationService = UrlVerificationService()
+
+    @Test
+    fun `Should return challenge for correct token`() {
+        val input = SlackMessage(token = "token", type = "url_verification", challenge = "challenge", event = null)
+
+        val result = service.verifyToken(input)
+
+        assertThat(result.challenge, `is`("challenge"))
+    }
+
+    @Test
+    fun `Should not return challenge for incorrect token`() {
+        val input = SlackMessage(token = "wrong token", type = "url_verification", challenge = "challenge", event = null)
+
+        val result = service.verifyToken(input)
+
+        assertThat(result.challenge, nullValue())
+    }
+
+
+}
