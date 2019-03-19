@@ -6,7 +6,8 @@ import org.junit.Test
 
 class EventCallbackServiceTest {
 
-    private val service: EventCallbackService = EventCallbackService()
+    private val properties = SlackProperties()
+    private val service: EventCallbackService = EventCallbackService(properties)
 
     @Test
     fun `Should read and make external call for message containing the key`() {

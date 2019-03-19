@@ -1,13 +1,15 @@
 package com.loysen.slack.slackbot.event
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class EventCallbackService {
+class EventCallbackService @Autowired constructor(val slackProperties: SlackProperties){
 
     fun handleCallback(event: SlackEvent?): EventResponse {
         if ("message" == event?.type) {
-            if ("Kotlin".toRegex().containsMatchIn(event.text ?: "")) {
+            val inputText = event.text ?: ""
+            if (slackProperties.messageTrigger.toRegex().containsMatchIn(inputText)) {
 
             }
         }
