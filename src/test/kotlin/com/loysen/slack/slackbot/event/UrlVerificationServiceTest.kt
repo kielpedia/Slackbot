@@ -6,14 +6,21 @@ import org.junit.Test
 import org.hamcrest.core.Is.`is`
 import org.hamcrest.core.IsNull
 import org.hamcrest.core.IsNull.nullValue
+import org.junit.Before
 
 class UrlVerificationServiceTest {
 
-    private val service: UrlVerificationService = UrlVerificationService()
+    private val properties = SlackProperties()
+    private val service: UrlVerificationService = UrlVerificationService(properties)
+
+    @Before
+    fun setup() {
+        properties.verificationToken = "testToken"
+    }
 
     @Test
     fun `Should return challenge for correct token`() {
-        val input = SlackMessage(token = "token", type = "url_verification", challenge = "challenge", event = null)
+        val input = SlackMessage(token = "testToken", type = "url_verification", challenge = "challenge", event = null)
 
         val result = service.verifyToken(input)
 
