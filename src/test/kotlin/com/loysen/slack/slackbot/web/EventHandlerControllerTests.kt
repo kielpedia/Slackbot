@@ -5,12 +5,14 @@ import com.loysen.slack.slackbot.event.EventCallbackService
 import com.loysen.slack.slackbot.event.EventResponse
 import com.loysen.slack.slackbot.event.SlackMessage
 import com.loysen.slack.slackbot.event.UrlVerificationService
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.mockk
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
@@ -24,9 +26,9 @@ internal class EventHandlerControllerTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @MockkBean
+    @Autowired
     private lateinit var urlVerificationService: UrlVerificationService
-    @MockkBean
+    @Autowired
     private lateinit var eventCallbackService: EventCallbackService
 
     @Test
@@ -77,5 +79,14 @@ internal class EventHandlerControllerTests {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk)
                 .andExpect(content().string("{}"))
+    }
+
+    @TestConfiguration
+    class TestConfig {
+        @Bean
+        fun urlVerificationService() = mockk<UrlVerificationService>()
+
+        @Bean
+        fun eventCallbackService() = mockk<EventCallbackService>()
     }
 }
