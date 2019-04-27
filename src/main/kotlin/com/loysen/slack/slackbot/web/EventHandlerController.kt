@@ -17,12 +17,13 @@ class EventHandlerController @Autowired constructor(private val urlVerificationS
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun handleSlackEvent(@Valid @RequestBody message: SlackMessage): EventResponse {
-        return when (message.type) {
-            "url_verification" -> urlVerificationService.verifyToken(message)
-            "event_callback" -> eventCallbackService.handleCallback(message.event)
-            else -> {
-                EventResponse(null)
-            }
+
+        if (message.type == "url_verification") {
+            return urlVerificationService.verifyToken(message)
+        } else if (message.type == "event_callback") {
+            eventCallbackService.handleCallback(message.event)
         }
+
+        return EventResponse(null)
     }
 }

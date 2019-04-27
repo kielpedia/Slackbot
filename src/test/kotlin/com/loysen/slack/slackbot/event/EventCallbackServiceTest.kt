@@ -1,50 +1,82 @@
 package com.loysen.slack.slackbot.event
 
-import org.hamcrest.core.Is.`is`
-import org.junit.Assert.assertThat
+import io.mockk.Called
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Test
+import org.springframework.http.ResponseEntity
+import org.springframework.web.client.RestTemplate
+import java.lang.RuntimeException
+import java.net.URI
 
 class EventCallbackServiceTest {
 
     private val properties = SlackProperties()
-    private val service: EventCallbackService = EventCallbackService(properties)
+    private val restTemplate = mockk<RestTemplate>()
+    private val service: EventCallbackService = EventCallbackService(properties, restTemplate)
 
     @Test
-    fun `Should read and make external call for message containing the key`() {
-        val input = SlackEvent(type = "message", channel = "channel", text = "Kotlin", user = "user")
-        val expected = EventResponse(null)
+    fun `Should read and make succesful external call for message containing the key`() {
+        every {
+            restTemplate.postForEntity(
+                    URI(properties.slackMessagePostUrl),
+                    CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
+                    Void::class.java)
+        } returns ResponseEntity.ok().build<Void>()
+        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
 
-        val result = service.handleCallback(input)
+        service.handleCallback(input)
+    }
 
-        assertThat(result, `is`(expected))
+    @Test
+    fun `Should read and make failing external call for message containing the key`() {
+        every {
+            restTemplate.postForEntity(
+                URI(properties.slackMessagePostUrl),
+                CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
+                Void::class.java)
+        } returns ResponseEntity.status(500).build()
+        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
+
+        service.handleCallback(input)
+    }
+
+    @Test
+    fun `Should read and make a call that throws an exception without leaking`() {
+        every {
+            restTemplate.postForEntity(
+                    URI(properties.slackMessagePostUrl),
+                    CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
+                    Void::class.java)
+        } throws RuntimeException()
+        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
+
+        service.handleCallback(input)
     }
 
     @Test
     fun `Should read and do nothing for message that doesnt match our key`() {
         val input = SlackEvent(type = "message", channel = "channel", text = "random", user = "user")
-        val expected = EventResponse(null)
 
-        val result = service.handleCallback(input)
+        service.handleCallback(input)
 
-        assertThat(result, `is`(expected))
+        verify{ restTemplate wasNot Called }
     }
 
     @Test
     fun `Should read and do nothing for unknown type`() {
         val input = SlackEvent(type = "unknow", channel = "channel", text = "random", user = "user")
-        val expected = EventResponse(null)
 
-        val result = service.handleCallback(input)
+        service.handleCallback(input)
 
-        assertThat(result, `is`(expected))
+        verify{ restTemplate wasNot Called }
     }
 
     @Test
     fun `Should read and do nothing for null event`() {
-        val expected = EventResponse(null)
+        service.handleCallback(null)
 
-        val result = service.handleCallback(null)
-
-        assertThat(result, `is`(expected))
+        verify{ restTemplate wasNot Called }
     }
 }

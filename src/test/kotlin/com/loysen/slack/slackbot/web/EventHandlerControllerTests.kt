@@ -7,6 +7,7 @@ import com.loysen.slack.slackbot.event.SlackMessage
 import com.loysen.slack.slackbot.event.UrlVerificationService
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -51,7 +52,6 @@ internal class EventHandlerControllerTests {
 
     @Test
     fun `Should route the event_callback message to EventCallbackService`() {
-        every { eventCallbackService.handleCallback(null) } returns EventResponse(null)
         val request = """
             {
             "token": "token",
@@ -64,6 +64,8 @@ internal class EventHandlerControllerTests {
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk)
                 .andExpect(content().string("{}"))
+
+        verify { eventCallbackService.handleCallback(any()) }
     }
 
     @Test
@@ -87,6 +89,6 @@ internal class EventHandlerControllerTests {
         fun urlVerificationService() = mockk<UrlVerificationService>()
 
         @Bean
-        fun eventCallbackService() = mockk<EventCallbackService>()
+        fun eventCallbackService() = mockk<EventCallbackService>(relaxed = true)
     }
 }
