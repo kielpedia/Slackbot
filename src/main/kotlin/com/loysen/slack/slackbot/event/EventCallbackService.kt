@@ -17,9 +17,12 @@ class EventCallbackService @Autowired constructor(val slackProperties: SlackProp
 
     fun handleCallback(event: SlackEvent?) {
         GlobalScope.launch {
+            logger.info { "received event: type=${event?.type} text=${event?.text}" }
+
             if ("message" == event?.type) {
                 val inputText = event.text ?: ""
                 if (slackProperties.messageTrigger.toRegex().containsMatchIn(inputText)) {
+                    logger.info { "sending message back to slack" }
                     sendMessageToSlack(event)
                 }
             }
