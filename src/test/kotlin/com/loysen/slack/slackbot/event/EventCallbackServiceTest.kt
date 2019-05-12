@@ -17,7 +17,7 @@ class EventCallbackServiceTest {
     private val service: EventCallbackService = EventCallbackService(properties, restTemplate)
 
     @Test
-    fun `Should read and make succesful external call for message containing the key`() {
+    fun `Should read and make successful external call for message containing the key`() {
         every {
             restTemplate.postForEntity(
                     URI(properties.slackMessagePostUrl),
@@ -58,6 +58,15 @@ class EventCallbackServiceTest {
     @Test
     fun `Should read and do nothing for message that doesnt match our key`() {
         val input = SlackEvent(type = "message", channel = "channel", text = "random", user = "user")
+
+        service.handleCallback(input)
+
+        verify{ restTemplate wasNot Called }
+    }
+
+    @Test
+    fun `Should ignore bot message`() {
+        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user", subtype = "BOT")
 
         service.handleCallback(input)
 
