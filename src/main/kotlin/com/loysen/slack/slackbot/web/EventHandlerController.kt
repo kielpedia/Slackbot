@@ -6,9 +6,7 @@ import com.loysen.slack.slackbot.event.SlackMessage
 import com.loysen.slack.slackbot.event.UrlVerificationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 
 @RestController
@@ -16,11 +14,12 @@ class EventHandlerController @Autowired constructor(private val urlVerificationS
                                                     private val eventCallbackService: EventCallbackService) {
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun handleSlackEvent(@Valid @RequestBody message: SlackMessage): EventResponse {
+    fun handleSlackEvent(@Valid @RequestBody message: SlackMessage,
+                         @RequestHeader(name = "X-Slack-Retry-Num", required = false) requestCount: Int?): EventResponse {
 
         if (message.type == "url_verification") {
             return urlVerificationService.verifyToken(message)
-        } else if (message.type == "event_callback") {
+        } else if (message.type == "event_callback" &&  requestCount == null) {
             eventCallbackService.handleCallback(message.event)
         }
 

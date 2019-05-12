@@ -1,6 +1,7 @@
 package com.loysen.slack.slackbot
 
 import com.loysen.slack.slackbot.event.*
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -58,6 +59,19 @@ class SlackbotApplicationTests {
                     Void::class.java
             )
         }
+    }
+
+    @Test
+    fun `Ignore message to Slack for a matching event from bot`() {
+        val message = SlackMessage(
+                token = properties.verificationToken,
+                type = "event_callback",
+                event = SlackEvent(type = "message", channel = "channel", text = "kotlin", subtype = "bot_message"))
+        val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
+
+        assertThat(response.statusCodeValue, `is`(200))
+
+        verify{ slackRestTemplate wasNot Called }
     }
 
     @Test
