@@ -5,6 +5,7 @@ import com.loysen.slack.slackbot.event.EventCallbackService
 import com.loysen.slack.slackbot.event.EventResponse
 import com.loysen.slack.slackbot.event.SlackMessage
 import com.loysen.slack.slackbot.event.UrlVerificationService
+import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -66,6 +67,25 @@ internal class EventHandlerControllerTests {
                 .andExpect(content().string("{}"))
 
         verify { eventCallbackService.handleCallback(any()) }
+    }
+
+    @Test
+    fun `Ingore event_callback message that was retried`() {
+        val request = """
+            {
+            "token": "token",
+            "type": "event_callback",
+            "challenge":"challenge"
+            }
+        """.trimIndent()
+        mockMvc.perform(post("")
+                .content(request)
+                .header("X-Slack-Retry-Num", 1)
+                .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isOk)
+                .andExpect(content().string("{}"))
+
+        verify { eventCallbackService wasNot called }
     }
 
     @Test
