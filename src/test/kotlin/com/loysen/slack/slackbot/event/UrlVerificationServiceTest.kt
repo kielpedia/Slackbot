@@ -4,7 +4,6 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 
 import org.hamcrest.core.Is.`is`
-import org.hamcrest.core.IsNull
 import org.hamcrest.core.IsNull.nullValue
 import org.junit.Before
 
@@ -20,7 +19,7 @@ class UrlVerificationServiceTest {
 
     @Test
     fun `Should return challenge for correct token`() {
-        val input = SlackMessage(token = "testToken", type = "url_verification", challenge = "challenge", event = null)
+        val input = EventMessage(token = "testToken", type = "url_verification", challenge = "challenge", event = null)
 
         val result = service.verifyToken(input)
 
@@ -29,7 +28,7 @@ class UrlVerificationServiceTest {
 
     @Test
     fun `Should not return challenge for incorrect token`() {
-        val input = SlackMessage(token = "wrong token", type = "url_verification", challenge = "challenge", event = null)
+        val input = EventMessage(token = "wrong token", type = "url_verification", challenge = "challenge", event = null)
 
         val result = service.verifyToken(input)
 

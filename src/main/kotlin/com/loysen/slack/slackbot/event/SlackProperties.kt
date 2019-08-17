@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("slack")
 class SlackProperties {
+    var signedSecret: String = "MY_SECRET"
     var verificationToken: String = "randomToken"
     var messageToken: String = "messageToken"
 
