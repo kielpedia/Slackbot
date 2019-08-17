@@ -15,7 +15,7 @@ private val logger = KotlinLogging.logger {}
 @Service
 class EventCallbackService @Autowired constructor(val slackProperties: SlackProperties, val restTemplate: RestTemplate) {
 
-    fun handleCallback(event: SlackEvent?) {
+    fun handleCallback(event: EventDetails?) {
         GlobalScope.launch {
             logger.info { "received event: type=${event?.type} text=${event?.text} subtype=${event?.subtype}"}
 
@@ -29,7 +29,7 @@ class EventCallbackService @Autowired constructor(val slackProperties: SlackProp
         }
     }
 
-    private fun sendMessageToSlack(event: SlackEvent) {
+    private fun sendMessageToSlack(event: EventDetails) {
         val uri = URI(slackProperties.slackMessagePostUrl)
 
         val response: ResponseEntity<Void> = restTemplate.postForEntity(

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 @Service
 class UrlVerificationService @Autowired constructor(val slackProperties: SlackProperties) {
 
-    fun verifyToken(message: SlackMessage): EventResponse {
+    fun verifyToken(message: EventMessage): EventResponse {
         if (slackProperties.verificationToken == message.token && message.challenge != null) {
             return EventResponse(message.challenge)
         }

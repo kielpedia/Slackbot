@@ -24,7 +24,7 @@ class EventCallbackServiceTest {
                     CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
                     Void::class.java)
         } returns ResponseEntity.ok().build<Void>()
-        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
+        val input = EventDetails(type = "message", channel = "channel", text = "kotlin", user = "user")
 
         service.handleCallback(input)
     }
@@ -37,7 +37,7 @@ class EventCallbackServiceTest {
                 CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
                 Void::class.java)
         } returns ResponseEntity.status(500).build()
-        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
+        val input = EventDetails(type = "message", channel = "channel", text = "kotlin", user = "user")
 
         service.handleCallback(input)
     }
@@ -50,14 +50,14 @@ class EventCallbackServiceTest {
                     CreateMessage(properties.messageToken, "channel", "Kotlin is fun"),
                     Void::class.java)
         } throws RuntimeException()
-        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user")
+        val input = EventDetails(type = "message", channel = "channel", text = "kotlin", user = "user")
 
         service.handleCallback(input)
     }
 
     @Test
     fun `Should read and do nothing for message that doesnt match our key`() {
-        val input = SlackEvent(type = "message", channel = "channel", text = "random", user = "user")
+        val input = EventDetails(type = "message", channel = "channel", text = "random", user = "user")
 
         service.handleCallback(input)
 
@@ -66,7 +66,7 @@ class EventCallbackServiceTest {
 
     @Test
     fun `Should ignore bot message`() {
-        val input = SlackEvent(type = "message", channel = "channel", text = "kotlin", user = "user", subtype = "BOT")
+        val input = EventDetails(type = "message", channel = "channel", text = "kotlin", user = "user", subtype = "BOT")
 
         service.handleCallback(input)
 
@@ -75,7 +75,7 @@ class EventCallbackServiceTest {
 
     @Test
     fun `Should read and do nothing for unknown type`() {
-        val input = SlackEvent(type = "unknow", channel = "channel", text = "random", user = "user")
+        val input = EventDetails(type = "unknow", channel = "channel", text = "random", user = "user")
 
         service.handleCallback(input)
 

@@ -3,8 +3,9 @@ package com.loysen.slack.slackbot.web
 
 import com.loysen.slack.slackbot.event.EventCallbackService
 import com.loysen.slack.slackbot.event.EventResponse
-import com.loysen.slack.slackbot.event.SlackMessage
+import com.loysen.slack.slackbot.event.EventMessage
 import com.loysen.slack.slackbot.event.UrlVerificationService
+import com.loysen.slack.slackbot.verification.RequestValidator
 import io.mockk.called
 import io.mockk.every
 import io.mockk.mockk
@@ -20,6 +21,8 @@ import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 
 @WebMvcTest(controllers = [EventHandlerController::class])
 @RunWith(SpringRunner::class)
@@ -32,10 +35,12 @@ internal class EventHandlerControllerTests {
     private lateinit var urlVerificationService: UrlVerificationService
     @Autowired
     private lateinit var eventCallbackService: EventCallbackService
+    @Autowired
+    private lateinit var requestValidator: RequestValidator
 
     @Test
     fun `Should route the url_verification message to UrlVerificationService`() {
-        val message = SlackMessage(token = "token", type = "url_verification", challenge = "challenge", event = null)
+        val message = EventMessage(token = "token", type = "url_verification", challenge = "challenge", event = null)
         every { urlVerificationService.verifyToken(message) } returns EventResponse("challenge")
         val request = """
             {
@@ -80,7 +85,7 @@ internal class EventHandlerControllerTests {
         """.trimIndent()
         mockMvc.perform(post("")
                 .content(request)
-                .header("X-Slack-Retry-Num", 1)
+                .header(SlackHeaders.NUM_RETRIES, 1)
                 .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk)
                 .andExpect(content().string("{}"))
@@ -103,6 +108,44 @@ internal class EventHandlerControllerTests {
                 .andExpect(content().string("{}"))
     }
 
+    @Test
+    fun `Should handle a command post`() {
+        val requestTime = 100L
+        val signature = "SIGNATURE"
+        every { requestValidator.verifyRequest(signature, any(), requestTime, any()) } returns true
+        val params: MultiValueMap<String, String> = LinkedMultiValueMap()
+        with(params) {
+            add("text", "text")
+            add("command", "command")
+            add("response_url", "www.google.com")
+        }
+        mockMvc.perform(post("")
+                .header(SlackHeaders.REQUEST_TIME, requestTime)
+                .header(SlackHeaders.SIGNATURE, signature)
+                .params(params)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `Should reject a post that fails verification`() {
+        val requestTime = 100L
+        val signature = "SIGNATURE"
+        every { requestValidator.verifyRequest(any(), any(), any(), any()) } returns false
+        val params: MultiValueMap<String, String> = LinkedMultiValueMap()
+        with(params) {
+            add("text", "text")
+            add("command", "command")
+            add("response_url", "www.google.com")
+        }
+        mockMvc.perform(post("")
+                .header(SlackHeaders.REQUEST_TIME, requestTime)
+                .header(SlackHeaders.SIGNATURE, signature)
+                .params(params)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED_VALUE))
+                .andExpect(status().`is`(403))
+    }
+
     @TestConfiguration
     class TestConfig {
         @Bean
@@ -110,5 +153,8 @@ internal class EventHandlerControllerTests {
 
         @Bean
         fun eventCallbackService() = mockk<EventCallbackService>(relaxed = true)
+
+        @Bean
+        fun requestValidator() = mockk<RequestValidator>()
     }
 }

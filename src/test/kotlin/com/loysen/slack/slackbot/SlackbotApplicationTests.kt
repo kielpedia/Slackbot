@@ -35,7 +35,7 @@ class SlackbotApplicationTests {
 
     @Test
     fun `Returns successful verification`() {
-        val message = SlackMessage(properties.verificationToken, "challenge", "url_verification")
+        val message = EventMessage(properties.verificationToken, "challenge", "url_verification")
         val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
 
         assertThat(response.statusCodeValue, `is`(200))
@@ -44,10 +44,10 @@ class SlackbotApplicationTests {
 
     @Test
     fun `Sends response message to Slack for a matching event`() {
-        val message = SlackMessage(
+        val message = EventMessage(
                 token = properties.verificationToken,
                 type = "event_callback",
-                event = SlackEvent(type = "message", channel = "channel", text = "kotlin"))
+                event = EventDetails(type = "message", channel = "channel", text = "kotlin"))
         val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
 
         assertThat(response.statusCodeValue, `is`(200))
@@ -63,10 +63,10 @@ class SlackbotApplicationTests {
 
     @Test
     fun `Ignore message to Slack for a matching event from bot`() {
-        val message = SlackMessage(
+        val message = EventMessage(
                 token = properties.verificationToken,
                 type = "event_callback",
-                event = SlackEvent(type = "message", channel = "channel", text = "kotlin", subtype = "bot_message"))
+                event = EventDetails(type = "message", channel = "channel", text = "kotlin", subtype = "bot_message"))
         val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
 
         assertThat(response.statusCodeValue, `is`(200))
@@ -82,10 +82,10 @@ class SlackbotApplicationTests {
                     CreateMessage(properties.messageToken, "channe", "Kotlin is fun"),
                     Void::class.java)
         } throws RuntimeException()
-        val message = SlackMessage(
+        val message = EventMessage(
                 token = properties.verificationToken,
                 type = "event_callback",
-                event = SlackEvent(type = "message", channel = "channe", text = "kotlin"))
+                event = EventDetails(type = "message", channel = "channe", text = "kotlin"))
         val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
 
         assertThat(response.statusCodeValue, `is`(200))
@@ -93,7 +93,7 @@ class SlackbotApplicationTests {
 
     @Test
     fun `Returns an empty 200 response for every other request`() {
-        val message = SlackMessage(properties.verificationToken, type = "unknown")
+        val message = EventMessage(properties.verificationToken, type = "unknown")
         val response: ResponseEntity<EventResponse> = testRestTemplate.postForEntity(URI("/"), message, EventResponse::class.java)
 
         assertThat(response.statusCodeValue, `is`(200))
