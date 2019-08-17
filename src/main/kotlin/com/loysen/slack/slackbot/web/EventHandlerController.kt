@@ -5,16 +5,15 @@ import com.loysen.slack.slackbot.verification.RequestValidator
 import com.loysen.slack.slackbot.web.SlackHeaders.Companion.NUM_RETRIES
 import com.loysen.slack.slackbot.web.SlackHeaders.Companion.REQUEST_TIME
 import com.loysen.slack.slackbot.web.SlackHeaders.Companion.SIGNATURE
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.util.MultiValueMap
 import org.springframework.web.bind.annotation.*
 import java.time.Instant
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+
+private val logger = KotlinLogging.logger {}
 
 @RestController
 class EventHandlerController @Autowired constructor(private val urlVerificationService: UrlVerificationService,
@@ -43,6 +42,8 @@ class EventHandlerController @Autowired constructor(private val urlVerificationS
                            @RequestHeader(name = NUM_RETRIES, required = false) requestCount: Int?,
                            @RequestBody rawBody: String): ResponseEntity<CommandResponse> {
         val nowMillis = Instant.now().toEpochMilli()
+        logger.info { "requestTime=$requestTimeMillis and nowTime=$nowMillis" }
+
         if (!requestValidtor.verifyRequest(signature, rawBody, requestTimeMillis, nowMillis)) {
             return ResponseEntity.status(403).build()
         }
