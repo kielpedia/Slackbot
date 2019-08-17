@@ -20,8 +20,8 @@ class RequestValidator @Autowired constructor(val slackProperties: SlackProperti
     }
 
     private fun isRequestTimeRecent(requestTime: Long, currentTime: Long): Boolean {
-        val requestInstant = Instant.ofEpochMilli(requestTime)
-        val currentTimeInstant = Instant.ofEpochMilli(currentTime)
+        val requestInstant = Instant.ofEpochSecond(requestTime)
+        val currentTimeInstant = Instant.ofEpochSecond(currentTime)
         val duration = Duration.between(requestInstant, currentTimeInstant).abs().toMinutes()
 
         if (duration > 5) {

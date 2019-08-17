@@ -38,13 +38,13 @@ class EventHandlerController @Autowired constructor(private val urlVerificationS
                            @RequestParam command: String,
                            @RequestParam(name = "response_url") responseUrl: String,
                            @RequestHeader(name = SIGNATURE) signature: String,
-                           @RequestHeader(name = REQUEST_TIME) requestTimeMillis: Long,
+                           @RequestHeader(name = REQUEST_TIME) requestTimeSeconds: Long,
                            @RequestHeader(name = NUM_RETRIES, required = false) requestCount: Int?,
                            @RequestBody rawBody: String): ResponseEntity<CommandResponse> {
-        val nowMillis = Instant.now().toEpochMilli()
-        logger.info { "requestTime=$requestTimeMillis and nowTime=$nowMillis" }
+        val nowSeconds = Instant.now().epochSecond
+        logger.info { "requestTime=$requestTimeSeconds and nowTime=$nowSeconds" }
 
-        if (!requestValidtor.verifyRequest(signature, rawBody, requestTimeMillis, nowMillis)) {
+        if (!requestValidtor.verifyRequest(signature, rawBody, requestTimeSeconds, nowSeconds)) {
             return ResponseEntity.status(403).build()
         }
 
