@@ -1,12 +1,15 @@
 package com.loysen.slack.slackbot.verification
 
 import com.loysen.slack.slackbot.event.SlackProperties
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.joinToString
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class RequestValidator @Autowired constructor(val slackProperties: SlackProperties) {
@@ -21,7 +24,11 @@ class RequestValidator @Autowired constructor(val slackProperties: SlackProperti
         val currentTimeInstant = Instant.ofEpochMilli(currentTime)
         val duration = Duration.between(requestInstant, currentTimeInstant).abs().toMinutes()
 
-        return duration <= 5
+        if (duration > 5) {
+            logger.warn { "request time invalid differenceInMinutes=$duration" }
+            return false
+        }
+        return true
     }
 
     private fun isValidSignature(requestSignature: String, rawBody: String, requestTime: Long): Boolean {
